@@ -23,6 +23,7 @@ class AnalysisDriver extends Configured with Tool{
     implicit val job = Job.getInstance(getConf)
     job.setJarByClass(this.getClass)
     job.setJobName(this.getClass.getName)
+    job.setNumReduceTasks(2)
 
     FileInputFormat.addInputPath(job, new Path(inputDir))
     FileOutputFormat.setOutputPath(job, new Path(outputDir))

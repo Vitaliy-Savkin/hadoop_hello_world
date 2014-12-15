@@ -9,6 +9,8 @@ class AnalysisCombiner extends Reducer[Text, TotalAndCount, Text, TotalAndCount]
   val result = TotalAndCount(0, 0)
 
   override def reduce(key: Text, values: Iterable[TotalAndCount], context: Reducer[Text, TotalAndCount, Text, TotalAndCount]#Context): Unit = {
+    result.v1 = 0
+    result.v2 = 0
     val itr = values.iterator()
     while (itr.hasNext){
       itr.next() match{
