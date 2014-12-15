@@ -1,3 +1,4 @@
+import sbt.Project.Initialize
 import sbt._
 import Keys._
 
@@ -21,6 +22,8 @@ object Build extends Build{
 
   lazy val logsAnalysis = Project("logs_analysis", file("./logs_analysis"), settings = warpCommonSettings ++ baseAssemblySettings)
     .settings(
+      deploy <<= deployTaskImpl,
+      //tas ++= Seq(deploy),
       libraryDependencies ++=
         test(mr_unit) ++
           provided(
@@ -36,4 +39,27 @@ object Build extends Build{
         }
       }
     )
+
+  lazy val deploy = inputKey[Unit]("Runs job on cluster")
+
+  lazy val deployTaskImpl: Def.Initialize[InputTask[Unit]] = Def.inputTask {
+    val args = Def.spaceDelimited("<arg>").parsed
+    def arg(pos: Int, default: String) = args.lift(pos).getOrElse(default)
+
+    val user = arg(0, "root")
+    val pass = arg(1, "hadoop")
+    val host = arg(2, "127.0.0.1")
+    val port = arg(3, "2222")
+    val file = arg(4, "000000")
+
+    val workingDir = new java.io.File(".").getCanonicalPath
+    val currProjectBase = logsAnalysis.base.getName
+    val scriptPath = s"$workingDir\\$currProjectBase\\src\\main\\scripts\\deploy.bat"
+    val inputPath = s"$workingDir\\$currProjectBase\\src\\main\\input\\$file"
+    val jarPath = assembly.value.getAbsolutePath
+
+    val command = s"cmd /c start $scriptPath $user $pass $host $port $inputPath $jarPath"
+    println("Executing command: " + command)
+    java.lang.Runtime.getRuntime.exec(command)
+  }
 }
